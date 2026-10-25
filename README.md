@@ -37,7 +37,7 @@ saldo stok, dan riwayat transaksi.
 1. Tidak ada akun password default. Buat akun satu persatu melalui;
 
     ```powershell 
-docker compose exec -it -e NODE_ENV=devel
+   docker compose exec -it -e NODE_ENV=development backend node dist/scripts/create-user.js
 
 ## Pengujian 
 - cd backend 
