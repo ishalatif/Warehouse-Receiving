@@ -35,7 +35,13 @@ PostgreSQL tidak dipublikasikan ke host; akses database melalui `docker compose 
 
 ## Akun development
 
-Tidak ada akun, password default, atau seed di repo ini. Login hanya dapat digunakan setelah user dibuat melalui mekanisme terpisah yang menyimpan hash password dan mengambil password dari environment/secret manager. Jangan menggunakan akun development untuk deployment.
+Tidak ada akun, password default, atau seed di repo ini. Login hanya dapat digunakan setelah user dibuat melalui script pembuatan akun:
+
+```powershell
+docker compose exec -it -e NODE_ENV=development backend node dist/scripts/create-user.js
+```
+
+Script meminta email, role, dan password (tidak di-echo), menyimpan hash bcrypt, dan menolak berjalan pada `NODE_ENV=production`. Jangan menggunakan akun development untuk deployment.
 
 ## Pengujian
 
@@ -53,6 +59,8 @@ Test integrasi backend memerlukan `TEST_DATABASE_URL` yang menunjuk database tes
 - [ERD](./diagram_erd_mermaid.md) — entitas dan relasi.
 - [OpenAPI](./openapi_specification.md) — kontrak REST API.
 - [Data flow](./data_flow_mermaid.md) — pergerakan data dan konsistensi transaksi.
+- [Riwayat pengembangan](./riwayat_pengembangan.md) — tahapan, keputusan, dan hasil verifikasi.
+- [Panduan prompting](./panduan_prompting.md) — master prompt, template tugas, dan log sesi AI.
 - [AI workflow](./ai_workflow.md) — panduan agent dan contoh instruksi tugas.
 - [Rencana QA](./rencana_pengujian_qa.md) — cakupan pengujian serta pencatatan bukti.
 - [Standar kode](./coding_standards_guidelines.md) — aturan implementasi.
@@ -62,5 +70,5 @@ Test integrasi backend memerlukan `TEST_DATABASE_URL` yang menunjuk database tes
 
 Versi pertama tidak mencakup barcode, multi-gudang/lokasi, batch/lot, tanggal kedaluwarsa, supplier, dan koreksi/retur penerimaan. Pertanyaan terbuka tercatat di PRD.
 
-Integrasi Docker lokal telah diuji clean start pada environment terisolasi (lihat [konfigurasi Docker Compose](./konfigurasi_docker_compose.md)). Login dengan kredensial nyata dan E2E lintas role belum diverifikasi karena belum ada mekanisme pembuatan user. `npm audit --omit=dev` pada frontend masih melaporkan kerentanan `postcss` yang dibundel Next.js 15; perbaikannya memerlukan upgrade breaking dan belum dilakukan. Hasil test, status deployment, dan bukti demo harus diisi setelah benar-benar dijalankan; jangan mengklaim lulus tanpa artefak hasil.
+Integrasi Docker lokal telah diuji clean start pada environment terisolasi (lihat [konfigurasi Docker Compose](./konfigurasi_docker_compose.md)). Login nyata, RBAC, TC-17, dan alur HTTP → database sudah diuji otomatis dengan PostgreSQL disposable; UI E2E lintas role dengan user persisten belum dijalankan. `npm audit --omit=dev` frontend bersih (0 kerentanan) setelah upgrade Next.js 16.4.3; audit penuh masih mencatat 3 moderate dev-only pada toolchain Tailwind 3. Hasil test, status deployment, dan bukti demo ada di [rencana QA](./rencana_pengujian_qa.md); jangan mengklaim lulus tanpa artefak hasil.
 

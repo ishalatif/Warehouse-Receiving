@@ -1,6 +1,10 @@
-# Tahapan Pengembangan Warehouse Receiving System
+# Riwayat Pengembangan Warehouse Receiving System
 
-Dokumen ini membagi implementasi Warehouse Receiving System menjadi tahap-tahap kecil yang mengikuti PRD, spesifikasi teknis, OpenAPI, dan rencana QA. Status yang sudah selesai didasarkan pada laporan pengerjaan; status tersebut belum diverifikasi ulang secara independen.
+Dokumen ini mencatat tahapan implementasi, keputusan teknis, dan hasil verifikasi proyek. Sumber kebenaran lain: [PRD](./product_requirements_document.md), [spesifikasi teknis](./spesifikasi_teknis.md), [OpenAPI](./openapi_specification.md), [ERD](./diagram_erd_mermaid.md), [data flow](./data_flow_mermaid.md), [rencana QA](./rencana_pengujian_qa.md), dan [standar kode](./coding_standards_guidelines.md).
+
+**Status ringkas (26 Oktober 2026):** seluruh tahap 0–11 selesai; backend 93/93 test dan frontend 22/22 test lulus pada environment disposable. Gap yang masih terbuka—UI E2E dengan user persisten, sub-kasus `expected_quantity` 0/negatif, dan rebuild image Docker—dicatat di [rencana QA](./rencana_pengujian_qa.md).
+
+> Status "Selesai" pada tahap awal mengikuti laporan saat tahap tersebut dikerjakan. Hasil verifikasi terbaru ada pada Tahap 10–11 dan `rencana_pengujian_qa.md`.
 
 ## Aturan Umum
 
@@ -231,43 +235,3 @@ Jalankan pengujian akhir sesuai `rencana_pengujian_qa.md`.
 
 - Pagination/filter **tidak** termasuk kontrak v1; keputusan pengguna menetapkan tidak ada pagination pada endpoint daftar.
 - Readiness `/api/health` terhadap PostgreSQL nyata telah diverifikasi pada clean start terisolasi Tahap 9; mekanisme pembuatan user aman sudah tersedia (`npm run user:create`), tetapi E2E UI dengan user persisten belum dijalankan.
-
-
-Laporan Tahap 1–3
-Semua berjalan pada PostgreSQL disposable (--tmpfs, loopback, tanpa volume). Container auth-system-db, wrs-postgres-15-migrate, dan volume wrs-t9-verify-20261025_pgdata tidak disentuh.
-Tahap 1 — Audit dependency (selesai)
-Upgrade: next@15.5.28 → next@16.4.3; PostCSS internal menjadi 8.5.23 (aman, batas rentan <= 8.5.22).
-Pemeriksaan	Hasil
-npm run build (frontend)	PASS — Next 16.4.3 Turbopack, 9 route
-npm test (frontend)	PASS — 22/22
-npm audit --omit=dev	PASS — 0 kerentanan (sebelumnya 2)
-standalone runtime	PASS — /login 200; postcss tidak ikut
-npm audit penuh	3 moderate dev-only di toolchain Tailwind 3; fix butuh Tailwind 4 major, belum diterapkan
-Next 16 otomatis menyesuaikan tsconfig.json (jsx: "react-jsx", include .next/dev/types). Node 24.18.0 dan React 19.3.1 memenuhi syarat Next 16.
-Belum terverifikasi: build image Docker frontend — Docker Hub tidak dapat dijangkau (TLS handshake timeout), bukan kegagalan kode.
-Tahap 2 — Pembuatan user aman (selesai)
-Ditambahkan:
-- backend/src/services/user.service.ts — validasi email/role/password, bcrypt cost 12, INSERT terparameterisasi, tangani email duplikat.
-- backend/src/scripts/create-user.ts + npm run user:create — input interaktif, password tidak di-echo, konfirmasi password, tanpa argumen password, menolak NODE_ENV=production dan non-TTY.
-- backend/src/__tests__/user.service.test.ts — 4 test validasi.
-Guard diuji: npm run user:create non-TTY → exit 1, tidak menulis database, tanpa membocorkan input. Tidak ada akun/seed yang dibuat di database persisten.
-Tahap 3 — TC-17 & HTTP→database (selesai)
-- TC-17 PASS: dua trigger PostgreSQL khusus document_id uji — gagal insert ledger dan gagal update status. Keduanya me-rollback item, stok, ledger, dan status; setelah trigger dilepas penerimaan normal berhasil.
-- HTTP→database PASS: login bcrypt nyata, token dipakai ke route terproteksi, produk/dokumen/penerimaan, inventory/ledger, health, token hilang/rusak; RBAC 403 diverifikasi tidak mengubah baris database. Guard menolak host non-loopback atau NODE_ENV=production.
-Bug produksi ditemukan dan diperbaiki: auth.service mengambil users.id BIGINT tanpa cast, sehingga klaim JWT sub berupa string dan middleware menolak semua token (401). Sekarang id::int. Bug ini sebelumnya tersembunyi karena route login memakai mock.
-Hasil akhir backend: build PASS, 93/93 test lulus (16 file). Tanpa TEST_DATABASE_URL: 67 lulus, 26 integration di-skip.
-File yang berubah
-- frontend/package.json, package-lock.json, tsconfig.json
-- backend/package.json
-- backend/src/services/auth.service.ts (fix cast)
-- backend/src/services/user.service.ts (baru)
-- backend/src/scripts/create-user.ts (baru)
-- backend/src/__tests__/api.http-database.integration.test.ts (baru)
-- backend/src/__tests__/receiving.rollback.fault.integration.test.ts (baru)
-- backend/src/__tests__/user.service.test.ts (baru)
-- docs/rencana_pengujian_qa.md, docs/tahapan.md
-Gap tersisa
-- BLOCKED: UI E2E lintas role dengan user persisten (prosedur npm run user:create sudah tersedia; belum ada akun dibuat).
-- SKIPPED: sub-kasus expected_quantity 0/negatif.
-- Dev-only: 3 moderate Tailwind 3 (butuh Tailwind 4 major).
-- Belum diverifikasi: rebuild image Docker karena registry tidak terjangkau.

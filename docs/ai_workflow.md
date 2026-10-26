@@ -4,6 +4,8 @@
 
 Dokumentasi ini menetapkan cara menggunakan AI coding agent secara specification-driven untuk Warehouse Receiving System. Agent harus menggunakan [PRD](./product_requirements_document.md), [spesifikasi teknis](./spesifikasi_teknis.md), [OpenAPI](./openapi_specification.md), [ERD](./diagram_erd_mermaid.md), [data flow](./data_flow_mermaid.md), [rencana QA](./rencana_pengujian_qa.md), dan [standar kode](./coding_standards_guidelines.md) sebagai sumber kebenaran.
 
+Untuk master prompt yang siap dipakai, template per jenis tugas, log sesi, dan checklist handoff, lihat [panduan prompting](./panduan_prompting.md).
+
 Contoh prompt berikut adalah instruksi yang dapat dipakai dalam implementasi; prompt ini **bukan bukti** bahwa agent telah menjalankan tugas atau bahwa fitur/test sudah selesai. Catat hasil aktual pada log kerja atau commit yang dapat ditinjau.
 
 ## 2. Urutan Kerja yang Disarankan
